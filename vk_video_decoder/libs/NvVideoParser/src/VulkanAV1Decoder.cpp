@@ -1492,8 +1492,8 @@ void VulkanAV1Decoder::DecodeCDEFdata()
 void VulkanAV1Decoder::DecodeLoopRestorationData()
 {
     av1_seq_param_s *const sps = m_sps.Get();
-	StdVideoDecodeAV1PictureInfo* pStd = &m_PicData.std_info;
-	StdVideoAV1LoopRestoration* pLoopRestoration = &m_PicData.loopRestoration;
+    StdVideoDecodeAV1PictureInfo* pStd = &m_PicData.std_info;
+    StdVideoAV1LoopRestoration* pLoopRestoration = &m_PicData.loopRestoration;
 
     if (pStd->flags.allow_intrabc) {
         return;
@@ -1517,38 +1517,28 @@ void VulkanAV1Decoder::DecodeLoopRestorationData()
     pStd->flags.UsesLr = use_lr;
     if (use_lr)  {
         int lr_unit_shift = 0;
-        int sb_size = sps->flags.use_128x128_superblock == 1 /*BLOCK_128X128*/ ? 2 : 1; //128 : 64;
+        int lr_unit_extra_shift = 0;
+        int lr_uv_shift = 0;
 
-        for (int pl = 0; pl < n_planes; pl++) {
-            pLoopRestoration->LoopRestorationSize[pl] = sb_size;  // 64 or 128
-        }
-        if (sps->flags.use_128x128_superblock == 1) {
-            lr_unit_shift = 1 + u(1);
+        if (sps->flags.use_128x128_superblock) {
+            lr_unit_shift = u(1) + 1;
         } else {
             lr_unit_shift = u(1);
             if (lr_unit_shift) {
-                lr_unit_shift += u(1);
+                lr_unit_extra_shift = u(1);
+                lr_unit_shift += lr_unit_extra_shift;
             }
         }
-        pLoopRestoration->LoopRestorationSize[0] = 1 + lr_unit_shift;
-    } else {
-        for (int pl = 0; pl < n_planes; pl++)
-            pLoopRestoration->LoopRestorationSize[pl] = 3;
-    }
-    uint8_t lr_uv_shift = 0;
-
-    if (!sps->color_config.flags.mono_chrome) {
-        if (use_chroma_lr && (sps->color_config.subsampling_x && sps->color_config.subsampling_y)) {
+        const int RESTORATION_TILESIZE_MAX = 256;
+        pLoopRestoration->LoopRestorationSize[0] = RESTORATION_TILESIZE_MAX >> (2 - lr_unit_shift);
+        if (sps->color_config.subsampling_x && sps->color_config.subsampling_y && use_chroma_lr) {
             lr_uv_shift = u(1);
-            pLoopRestoration->LoopRestorationSize[1] = pLoopRestoration->LoopRestorationSize[0] - lr_uv_shift;
-            pLoopRestoration->LoopRestorationSize[2] = pLoopRestoration->LoopRestorationSize[1];
         } else {
-            pLoopRestoration->LoopRestorationSize[1] = pLoopRestoration->LoopRestorationSize[0];
-            pLoopRestoration->LoopRestorationSize[2] = pLoopRestoration->LoopRestorationSize[0];
+            lr_uv_shift = 0;
         }
+        pLoopRestoration->LoopRestorationSize[1] = pLoopRestoration->LoopRestorationSize[0] >> lr_uv_shift;
+        pLoopRestoration->LoopRestorationSize[2] = pLoopRestoration->LoopRestorationSize[0] >> lr_uv_shift;
     }
-    pLoopRestoration->LoopRestorationSize[1] = pLoopRestoration->LoopRestorationSize[0] >> lr_uv_shift;
-    pLoopRestoration->LoopRestorationSize[1] = pLoopRestoration->LoopRestorationSize[1] >> lr_uv_shift;
 }
 
 int VulkanAV1Decoder::GetRelativeDist1(int a, int b)
