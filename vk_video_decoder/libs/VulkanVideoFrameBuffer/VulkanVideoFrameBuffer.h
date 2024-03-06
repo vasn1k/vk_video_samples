@@ -84,8 +84,14 @@ public:
     };
 
     struct PictureResourceInfo {
-        VkImage  image;
-        VkFormat imageFormat;
+        //int32_t pictureIndex;
+        //int32_t displayWidth;
+        //int32_t displayHeight;
+        //VkSharedBaseObj<VkImageResourceView> decodedImageView;
+        //VkSharedBaseObj<VkImageResourceView> outputImageView;
+        //VkSharedBaseObj<VkImageResource>     outLinearImage;
+        VkImage       image;
+        VkFormat      imageFormat;
         VkImageLayout currentImageLayout;
     };
 

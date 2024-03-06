@@ -220,13 +220,13 @@ private:
         , m_decodeFramesData(vkDevCtx)
         , m_decodePicCount(0)
         , m_hwLoadBalancingTimelineSemaphore()
-        , m_dpbAndOutputCoincide(true)
+        , m_preferDPBAndOutputCoincide(true)
         , m_videoMaintenance1FeaturesSupported(false)
         , m_enableDecodeFilter((enableDecoderFeatures & ENABLE_POST_PROCESS_FILTER) != 0)
         , m_useImageArray(false)
         , m_useImageViewArray(false)
-        , m_useSeparateOutputImages(((enableDecoderFeatures & ENABLE_LINEAR_OUTPUT) != 0) || m_enableDecodeFilter)
-        , m_useLinearOutput((enableDecoderFeatures & ENABLE_LINEAR_OUTPUT) != 0)
+        , m_useSeparateOutputImages(false) // TODO: Move to correct place this should not happen during class instantiation ((enableDecoderFeatures & ENABLE_LINEAR_OUTPUT) != 0) || m_enableDecodeFilter)
+        , m_useLinearOutput(useLinearOutput) // TODO: Move to correct place this should not happen during class instantiation (enableDecoderFeatures & ENABLE_LINEAR_OUTPUT) != 0
         , m_resetDecoder(true)
         , m_dumpDecodeData(false)
         , m_numBitstreamBuffersToPreallocate(numBitstreamBuffersToPreallocate)
@@ -317,7 +317,7 @@ private:
     uint64_t                                         m_decodePicCount; // Also used for the HW load balancing timeline semaphore
     VkSharedBaseObj<VkParserVideoPictureParameters>  m_currentPictureParameters;
     VkSemaphore m_hwLoadBalancingTimelineSemaphore;
-    uint32_t m_dpbAndOutputCoincide : 1;
+    uint32_t m_preferDPBAndOutputCoincide : 1;
     uint32_t m_videoMaintenance1FeaturesSupported : 1;
     uint32_t m_enableDecodeFilter : 1;
     uint32_t m_useImageArray : 1;
