@@ -679,7 +679,7 @@ int VkVideoDecoder::DecodePictureWithParameters(VkParserPerFrameDecodeParameters
         pOutputPictureResource = &pCurrFrameDecParams->decodeFrameInfo.dstPictureResource;
     }
 
-    if (m_useLinearOutput != false) {
+    if (m_useLinearOutput != 0) {
         pFrameDumpStagingResource = &currentLinearPictureResource;
         pFrameDumpStagingResourceInfo = &currentLinearPictureResourceInfo;
     }
