@@ -807,6 +807,10 @@ VkResult NvPerFrameDecodeResources::CreateImage( const VulkanDeviceContext* vkDe
     m_imageViewState[pImageSpec->imageTypeIdx].currentLayerLayout = VK_IMAGE_LAYOUT_UNDEFINED;
     m_imageViewState[pImageSpec->imageTypeIdx].recreateImage = false;
 
+    if (m_recreateImage != false) {
+        m_recreateImage = false;
+    }
+
     return result;
 }
 
