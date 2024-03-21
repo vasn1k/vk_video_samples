@@ -403,6 +403,7 @@ int32_t VkVideoDecoder::StartVideoSequence(VkParserDetectedVideoFormat* pVideoFo
     }
 
     if (m_useSeparateOutputImages != false) {
+        // Create both a resource and an imageview for the output image.
         m_videoFrameBuffer->InitImagePool(videoProfile.GetProfile(),
                                                     m_numDecodeSurfaces,
                                                     outImageFormat, // Should be moved.
@@ -413,6 +414,19 @@ int32_t VkVideoDecoder::StartVideoSequence(VkParserDetectedVideoFormat* pVideoFo
                                                     m_numDecodeImagesToPreallocate,
                                                     PresentableImage,
                                                     false,
+                                                    false);
+    } else {
+        // Only create image views for the DPB images that will be read by the present operation.
+        m_videoFrameBuffer->InitImagePool(videoProfile.GetProfile(),
+                                                    m_numDecodeSurfaces,
+                                                    outImageFormat, // Should be moved.
+                                                    codedExtent,
+                                                    imageExtent,
+                                                    outImageUsage, // Should be moved.
+                                                    m_vkDevCtx->GetVideoDecodeQueueFamilyIdx(),
+                                                    m_numDecodeImagesToPreallocate,
+                                                    PresentableImage,
+                                                    true,
                                                     false);
     }
 
