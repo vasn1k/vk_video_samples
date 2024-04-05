@@ -722,7 +722,7 @@ public:
 };
 
 bool VulkanVideoParser::m_dumpParserData = false;
-bool VulkanVideoParser::m_dumpDpbData = true;
+bool VulkanVideoParser::m_dumpDpbData = false;
 
 bool VulkanVideoParser::DecodePicture(VkParserPictureData* pd)
 {
@@ -831,7 +831,7 @@ bool VulkanVideoParser::DisplayPicture(VkPicIf* pPicBuff, int64_t timestamp)
     return result;
 }
 
-bool VulkanVideoParser::AllocPictureBuffer(VkPicIf** ppPicBuff, uint32_t width, uint32_t height)
+bool VulkanVideoParser::AllocPictureBuffer(VkPicIf** ppPicBuff, uint32_t , uint32_t )
 {
     bool result = false;
 
@@ -945,19 +945,15 @@ VkResult VulkanVideoParser::Initialize(
 
     static const VkExtensionProperties h264StdExtensionVersion = { VK_STD_VULKAN_VIDEO_CODEC_H264_DECODE_EXTENSION_NAME, VK_STD_VULKAN_VIDEO_CODEC_H264_DECODE_SPEC_VERSION };
     static const VkExtensionProperties h265StdExtensionVersion = { VK_STD_VULKAN_VIDEO_CODEC_H265_DECODE_EXTENSION_NAME, VK_STD_VULKAN_VIDEO_CODEC_H265_DECODE_SPEC_VERSION };
-#ifdef ENABLE_AV1_DECODER
     static const VkExtensionProperties av1StdExtensionVersion = { VK_STD_VULKAN_VIDEO_CODEC_AV1_DECODE_EXTENSION_NAME, VK_STD_VULKAN_VIDEO_CODEC_AV1_DECODE_SPEC_VERSION };
-#endif
 
     const VkExtensionProperties* pStdExtensionVersion = NULL;
     if (m_codecType == VK_VIDEO_CODEC_OPERATION_DECODE_H264_BIT_KHR) {
         pStdExtensionVersion = &h264StdExtensionVersion;
     } else if (m_codecType == VK_VIDEO_CODEC_OPERATION_DECODE_H265_BIT_KHR) {
         pStdExtensionVersion = &h265StdExtensionVersion;
-#ifdef ENABLE_AV1_DECODER
     } else if (m_codecType == VK_VIDEO_CODEC_OPERATION_DECODE_AV1_BIT_KHR) {
         pStdExtensionVersion = &av1StdExtensionVersion;
-#endif
     } else {
         assert(!"Unsupported codec type");
         return VK_ERROR_VIDEO_PROFILE_CODEC_NOT_SUPPORTED_KHR;
@@ -1685,8 +1681,8 @@ uint32_t VulkanVideoParser::FillDpbAV1State(
         const VkParserPictureData* pd,
         VkParserAv1PictureData* pin,
         nvVideoDecodeAV1DpbSlotInfo* pDpbSlotInfo,
-        StdVideoDecodeAV1PictureInfo* pStdPictureInfo,
-        uint32_t maxRefPictures,
+        StdVideoDecodeAV1PictureInfo*,
+        uint32_t,
         VkVideoReferenceSlotInfoKHR* pReferenceSlots,
         int8_t* pGopReferenceImagesIndexes,
         int32_t* pCurrAllocatedSlotIndex)
@@ -1749,7 +1745,6 @@ uint32_t VulkanVideoParser::FillDpbAV1State(
         //hdr.delta_frame_id_minus_1[dpbSlot] = pin->delta_frame_id_minus_1[pin->ref_frame_idx[i]];
     }
 
-    printf("Order hints - ref\n");
     for (int32_t inIdx = 0; inIdx < STD_VIDEO_AV1_NUM_REF_FRAMES; inIdx++) {
         int8_t picIdx = isKeyFrame ? -1 : pin->pic_idx[inIdx];
         int8_t dpbSlot = -1;
@@ -1775,11 +1770,6 @@ uint32_t VulkanVideoParser::FillDpbAV1State(
             pReferenceSlots[referenceIndex].slotIndex = dpbSlot;
             pGopReferenceImagesIndexes[referenceIndex] = picIdx;
 
-            printf("%i ", pin->dpbSlotInfos[inIdx].OrderHint);
-            for(int x = 0; x < 8; x++) {
-                printf("%i ", pin->dpbSlotInfos[inIdx].SavedOrderHints[x]);
-            }
-            printf("\n");
             referenceIndex++;
         }
     }
@@ -2239,7 +2229,6 @@ bool VulkanVideoParser::DecodePicture(
             }
         }
 
-//#ifdef ENABLE_AV1_DECODER
     }
     else if (m_codecType == VK_VIDEO_CODEC_OPERATION_DECODE_AV1_BIT_KHR) {
         VkParserAv1PictureData* pin = &pd->CodecSpecific.av1;
@@ -2312,16 +2301,6 @@ bool VulkanVideoParser::DecodePicture(
             assert(dpbSlot >= 0);
             pPictureInfo->referenceNameSlotIndices[i] = dpbSlot;
         }
-
-        printf("%d referenceNameSlotIndex: ", m_nCurrentPictureID);
-        for (int i = 0; i < STD_VIDEO_AV1_REFS_PER_FRAME; i++) {
-            printf("%02d ", i);
-        }
-        printf("\n%d referenceNameSlotIndex: ", m_nCurrentPictureID);
-        for (int i = 0; i < STD_VIDEO_AV1_REFS_PER_FRAME; i++) {
-            printf("%02d ", pPictureInfo->referenceNameSlotIndices[i]);
-        }
-        printf("\n");
 
         pPictureInfo->pTileOffsets = pin->tileOffsets;
         pPictureInfo->pTileSizes = pin->tileSizes;
@@ -2428,12 +2407,10 @@ VkResult vulkanCreateVideoParser(
             return VK_ERROR_VIDEO_STD_VERSION_NOT_SUPPORTED_KHR;
         }
     } else if (videoCodecOperation == VK_VIDEO_CODEC_OPERATION_DECODE_AV1_BIT_KHR) {
-#if HEADLESS_AV1
         if (!pStdExtensionVersion || strcmp(pStdExtensionVersion->extensionName, VK_STD_VULKAN_VIDEO_CODEC_AV1_DECODE_EXTENSION_NAME) || (pStdExtensionVersion->specVersion != VK_STD_VULKAN_VIDEO_CODEC_AV1_DECODE_SPEC_VERSION)) {
             assert(!"Decoder AV1 Codec version is NOT supported");
             return VK_ERROR_VIDEO_STD_VERSION_NOT_SUPPORTED_KHR;
         }
-#endif
     } else {
         assert(!"Decoder Codec is NOT supported");
         return VK_ERROR_VIDEO_PROFILE_CODEC_NOT_SUPPORTED_KHR;
