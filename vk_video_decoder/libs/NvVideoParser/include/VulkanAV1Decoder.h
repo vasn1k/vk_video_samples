@@ -24,6 +24,7 @@
 
 #ifdef ENABLE_AV1_DECODER
 
+#define BUFFER_POOL_MAX_SIZE        10
 #define ALIGN(value, n)         (((value) + (n) - 1) & ~((n) - 1))
 #define CLAMP(value, low, high) ((value) < (low) ? (low) : ((value) > (high) ? (high) : (value)))
 
@@ -286,8 +287,8 @@ typedef struct _av1_ref_frames_s
     bool                    disable_frame_end_update_cdf;
     bool                    segmentation_enabled;
 
-    int8_t                  RefFrameSignBias[8];
-    uint8_t                 ref_order_hint[8];
+    int8_t                  RefFrameSignBias[STD_VIDEO_AV1_NUM_REF_FRAMES];
+    uint8_t                 SavedOrderHints[STD_VIDEO_AV1_NUM_REF_FRAMES];
     uint8_t                 order_hint;
 } av1_ref_frames_s;
 
@@ -346,10 +347,10 @@ protected:
     int32_t                     RefValid[STD_VIDEO_AV1_NUM_REF_FRAMES];
     int32_t                     ref_frame_idx[STD_VIDEO_AV1_REFS_PER_FRAME];
 
-    int32_t                     RefOrderHint[STD_VIDEO_AV1_NUM_REF_FRAMES];
-
-    av1_ref_frames_s            m_pBuffers[STD_VIDEO_AV1_NUM_REF_FRAMES];
-
+    // According to AV1 spec section - E.2. Decoder model definitions
+    int32_t                     RefOrderHint[BUFFER_POOL_MAX_SIZE];
+    av1_ref_frames_s            m_pBuffers[BUFFER_POOL_MAX_SIZE];
+ 
     VkPicIf*                    m_pCurrPic;
 
     bool                        m_bOutputAllLayers;
