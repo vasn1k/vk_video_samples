@@ -226,7 +226,7 @@ private:
         , m_useImageArray(false)
         , m_useImageViewArray(false)
         , m_useSeparateOutputImages(false) // TODO: Move to correct place this should not happen during class instantiation ((enableDecoderFeatures & ENABLE_LINEAR_OUTPUT) != 0) || m_enableDecodeFilter)
-        , m_useLinearOutput(useLinearOutput) // TODO: Move to correct place this should not happen during class instantiation (enableDecoderFeatures & ENABLE_LINEAR_OUTPUT) != 0
+        , m_useLinearOutput(false) // TODO: Move to correct place this should not happen during class instantiation (enableDecoderFeatures & ENABLE_LINEAR_OUTPUT) != 0
         , m_resetDecoder(true)
         , m_dumpDecodeData(false)
         , m_numBitstreamBuffersToPreallocate(numBitstreamBuffersToPreallocate)

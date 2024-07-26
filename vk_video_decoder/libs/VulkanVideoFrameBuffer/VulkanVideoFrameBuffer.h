@@ -69,27 +69,28 @@ public:
         // VPS
         const VkVideoRefCountBase*     pStdVps;
 
-        const VkVideoRefCountBase*     pStdAv1Sps;
+        const VkVideoRefCountBase*     pStdAv1Pps;
 
         ReferencedObjectsInfo(const VkVideoRefCountBase* pBitstreamDataRef,
                               const VkVideoRefCountBase* pStdPpsRef,
                               const VkVideoRefCountBase* pStdSpsRef,
-                              const VkVideoRefCountBase* pStdVpsRef = nullptr,
-                              const VkVideoRefCountBase* pStdAv1SpsRef = nullptr)
+                              const VkVideoRefCountBase* pStdVpsRef = nullptr)
         : pBitstreamData(pBitstreamDataRef)
         , pStdPps(pStdPpsRef)
         , pStdSps(pStdSpsRef)
         , pStdVps(pStdVpsRef)
-        , pStdAv1Sps(pStdAv1SpsRef) {}
+        , pStdAv1Pps(nullptr) {}
+
+        ReferencedObjectsInfo(const VkVideoRefCountBase* pBitstreamDataRef,
+                              const VkVideoRefCountBase* pStdAv1PpsRef)
+        : pBitstreamData(pBitstreamDataRef)
+        , pStdPps(nullptr)
+        , pStdSps(nullptr)
+        , pStdVps(nullptr)
+        , pStdAv1Pps(pStdAv1PpsRef) {}
     };
 
     struct PictureResourceInfo {
-        //int32_t pictureIndex;
-        //int32_t displayWidth;
-        //int32_t displayHeight;
-        //VkSharedBaseObj<VkImageResourceView> decodedImageView;
-        //VkSharedBaseObj<VkImageResourceView> outputImageView;
-        //VkSharedBaseObj<VkImageResource>     outLinearImage;
         VkImage       image;
         VkFormat      imageFormat;
         VkImageLayout currentImageLayout;

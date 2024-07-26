@@ -18,6 +18,8 @@
 #define _VULKANAV1DECODER_H_
 
 #include "VulkanVideoDecoder.h"
+#include "vk_video/vulkan_video_codec_av1std.h"
+#include "vk_video/vulkan_video_codec_av1std_decode.h"
 
 #include <array>
 #include <vector>
@@ -182,7 +184,7 @@ struct av1_seq_param_s : public StdVideoPictureParametersSet, public StdVideoAV1
         isSps = true;
         return 0; // @review: what is the equivalent of parameter_set_id for AV1?
     }
-
+    
     const StdVideoAV1SequenceHeader*    GetStdAV1Sps() const override { return this; }
 
     const char* GetRefClassId() const override { return m_refClassId; }

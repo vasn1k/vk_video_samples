@@ -24,8 +24,10 @@
 
 #ifndef DE_BUILD_VIDEO
     #include "vk_video/vulkan_video_codecs_common.h"
-#endif
 
+#endif
+    #include "vk_video/vulkan_video_codec_av1std.h"
+    #include "vk_video/vulkan_video_codec_av1std_decode.h"
 #define NV_VULKAN_VIDEO_PARSER_API_VERSION_0_9_9 VK_MAKE_VIDEO_STD_VERSION(0, 9, 9)
 
 #define NV_VULKAN_VIDEO_PARSER_API_VERSION   NV_VULKAN_VIDEO_PARSER_API_VERSION_0_9_9

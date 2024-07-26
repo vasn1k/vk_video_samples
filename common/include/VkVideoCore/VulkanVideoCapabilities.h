@@ -137,9 +137,7 @@ public:
         assert(pVideoCapabilities->sType == VK_STRUCTURE_TYPE_VIDEO_CAPABILITIES_KHR);
         VkVideoDecodeCapabilitiesKHR* pVideoDecodeCapabilities = (VkVideoDecodeCapabilitiesKHR*)pVideoCapabilities->pNext;
         assert(pVideoDecodeCapabilities->sType == VK_STRUCTURE_TYPE_VIDEO_DECODE_CAPABILITIES_KHR);
-        VkVideoDecodeH264CapabilitiesKHR* pH264Capabilities = nullptr;
-        VkVideoDecodeH265CapabilitiesKHR* pH265Capabilities = nullptr;
-        VkVideoDecodeAV1CapabilitiesKHR* pAV1Capabilities = nullptr;
+
         VkVideoEncodeCapabilitiesKHR* pVideoEncodeCapabilities = (VkVideoEncodeCapabilitiesKHR*)pVideoCapabilities->pNext;
         assert((pVideoDecodeCapabilities->sType == VK_STRUCTURE_TYPE_VIDEO_DECODE_CAPABILITIES_KHR) ||
                (pVideoEncodeCapabilities->sType ==  VK_STRUCTURE_TYPE_VIDEO_ENCODE_CAPABILITIES_KHR));
@@ -158,16 +156,19 @@ public:
         case VK_VIDEO_CODEC_OPERATION_DECODE_H265_BIT_KHR:
         {
             assert(pVideoDecodeCapabilities->pNext);
-            const VkVideoDecodeAV1CapabilitiesKHR* pAV1Capabilities = (VkVideoDecodeAV1CapabilitiesKHR*)pVideoDecodeCapabilities->pNext;
-            assert(pAV1Capabilities->sType ==  VK_STRUCTURE_TYPE_VIDEO_DECODE_AV1_CAPABILITIES_KHR);
+            const VkVideoDecodeH265CapabilitiesKHR* pH265DecCapabilities = (VkVideoDecodeH265CapabilitiesKHR*)pVideoDecodeCapabilities->pNext;
+            assert(pH265DecCapabilities->sType ==  VK_STRUCTURE_TYPE_VIDEO_DECODE_H265_CAPABILITIES_KHR);
+            if (pH265DecCapabilities->sType != VK_STRUCTURE_TYPE_VIDEO_DECODE_H265_CAPABILITIES_KHR) {
+                return VK_ERROR_INITIALIZATION_FAILED;
+            }
         }
             break;
         case VK_STRUCTURE_TYPE_VIDEO_DECODE_AV1_CAPABILITIES_KHR:
         {
             assert(pVideoDecodeCapabilities->pNext);
-            const VkVideoDecodeH265CapabilitiesKHR* pH265DecCapabilities = (VkVideoDecodeH265CapabilitiesKHR*)pVideoDecodeCapabilities->pNext;
-            assert(pH265DecCapabilities->sType ==  VK_STRUCTURE_TYPE_VIDEO_DECODE_H265_CAPABILITIES_KHR);
-            if (pH265DecCapabilities->sType != VK_STRUCTURE_TYPE_VIDEO_DECODE_H265_CAPABILITIES_KHR) {
+            const VkVideoDecodeAV1CapabilitiesKHR* pAV1Capabilities = (VkVideoDecodeAV1CapabilitiesKHR*)pVideoDecodeCapabilities->pNext;
+            assert(pAV1Capabilities->sType ==  VK_STRUCTURE_TYPE_VIDEO_DECODE_AV1_CAPABILITIES_KHR);
+            if (pAV1Capabilities->sType != VK_STRUCTURE_TYPE_VIDEO_DECODE_AV1_CAPABILITIES_KHR) {
                 return VK_ERROR_INITIALIZATION_FAILED;
             }
         }

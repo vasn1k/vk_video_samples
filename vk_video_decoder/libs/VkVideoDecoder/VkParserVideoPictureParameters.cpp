@@ -153,6 +153,7 @@ VkResult VkParserVideoPictureParameters::CreateParametersObject(const VulkanDevi
         break;
         case StdVideoPictureParametersSet::TYPE_AV1_SPS:
         {
+            assert(false);
             createInfo.pNext = &av1SessionParametersCreateInfo;
             if (pStdVideoPictureParametersSet == nullptr) {
                 currentId = -1;
@@ -164,6 +165,7 @@ VkResult VkParserVideoPictureParameters::CreateParametersObject(const VulkanDevi
                 currentId = pStdVideoPictureParametersSet->GetAv1SpsId(isAv1Sps);
                 assert(isAv1Sps);
             }
+
             // VUID-VkVideoSessionParametersCreateInfoKHR-videoSession-09258
             // If videoSession was created with the video codec operation VK_VIDEO_CODEC_OPERATION_DECODE_AV1_BIT_KHR,
             // then videoSessionParametersTemplate must be VK_NULL_HANDLE
@@ -257,8 +259,8 @@ VkResult VkParserVideoPictureParameters::UpdateParametersObject(const StdVideoPi
         {
             // Daniel Rakos said only creation of parameters is supported in AV1, not updates.
             // TODO: Properly fix the call chains in the case of AV1, for now just ignore the updates...
-	    return VK_SUCCESS;
             assert(false && "There should be no calls to UpdateParametersObject for AV1");
+            return VK_SUCCESS;
         }
         break;
         default:
