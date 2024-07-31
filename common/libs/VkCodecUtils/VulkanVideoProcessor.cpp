@@ -612,12 +612,23 @@ size_t VulkanVideoProcessor::OutputFrameToFile(VulkanDecodedFrame* pFrame)
         return (size_t)-1;
     }
 
-    VkSharedBaseObj<VkImageResourceView> imageResourceView;
-    pFrame->imageViews[DecodeFrameBufferIf::IMAGE_TYPE_IDX_OUT].GetImageResourceView(imageResourceView);
-
-
     assert(pFrame != nullptr);
-    assert(!!imageResourceView);
+
+    VkSharedBaseObj<VkImageResourceView> imageResourceView;
+    pFrame->imageViews[DecodeFrameBufferIf::IMAGE_TYPE_IDX_FILTER].GetImageResourceView(imageResourceView);
+    // TODO: It would be nice if the index for the linear image did not migrate.
+    // With AV1 + Filmgrain it's questionable whether we want the linear image to be in IDX_FILTER or in IDX_OUT
+    //    when 1 frame doesn't use FG.
+    // Propagating that data all the way here seems unnecessary.
+    // For now first check whether the IDX_FILTER resource is allocated, if it isn't use the IDX_OUT resource.
+    if (imageResourceView == nullptr) {
+        pFrame->imageViews[DecodeFrameBufferIf::IMAGE_TYPE_IDX_OUT].GetImageResourceView(imageResourceView);
+    }
+
+    assert(!!imageResourceView); // TODO: The codebase should move to "!= nullptr".
+                                 // It's much more explicit and the VkSharedBaseObj doesn't have an operator that returns true or false.
+                                 // So it's secretly implicitely casting a ptr to a bool..
+
     assert(pFrame->pictureIndex != -1);
 
     VkSharedBaseObj<VkImageResource> imageResource = imageResourceView->GetImageResource();

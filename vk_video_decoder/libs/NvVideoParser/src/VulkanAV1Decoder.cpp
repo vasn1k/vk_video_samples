@@ -253,7 +253,6 @@ bool VulkanAV1Decoder::BeginPicture(VkParserPictureData* pnvpd)
     av1_seq_param_s *const sps = m_sps.Get();
     assert(sps != nullptr);
 
-    // TODO: drop all the SDK fluff
     av1->upscaled_width = upscaled_width;
     av1->frame_width = frame_width;
     av1->frame_height = frame_height;
@@ -297,7 +296,6 @@ bool VulkanAV1Decoder::BeginPicture(VkParserPictureData* pnvpd)
     pnvpd->FrameHeightInMbs = nvsi.nCodedHeight >> 4;
     pnvpd->pCurrPic         = m_pCurrPic;
     pnvpd->progressive_frame = 1;
-    // TODO: always needs a setup slot index.
     pnvpd->ref_pic_flag     = true;
     pnvpd->chroma_format    = nvsi.nChromaFormat; // 1 : 420
 
@@ -305,7 +303,6 @@ bool VulkanAV1Decoder::BeginPicture(VkParserPictureData* pnvpd)
     av1->setupSlot.sType = VK_STRUCTURE_TYPE_VIDEO_DECODE_AV1_DPB_SLOT_INFO_KHR;
     av1->setupSlotInfo.OrderHint = m_PicData.std_info.OrderHint;
     memcpy(&av1->setupSlotInfo.SavedOrderHints, m_PicData.std_info.OrderHints, STD_VIDEO_AV1_NUM_REF_FRAMES);
-    // TODO: What goes in setupSlotInfo.RefFrameSignBias ? Guessing at the intra frame...
     for (size_t av1name = 0; av1name < STD_VIDEO_AV1_NUM_REF_FRAMES; av1name += 1) {
         av1->setupSlotInfo.RefFrameSignBias |= (m_pBuffers[0].RefFrameSignBias[av1name] <= 0) << av1name;
     }
@@ -320,9 +317,9 @@ bool VulkanAV1Decoder::BeginPicture(VkParserPictureData* pnvpd)
         av1->dpbSlotInfos[i].flags.segmentation_enabled = m_pBuffers[i].segmentation_enabled;
         av1->dpbSlotInfos[i].frame_type = m_pBuffers[i].frame_type;
         av1->dpbSlotInfos[i].OrderHint = m_pBuffers[i].order_hint;
-        for (size_t av1name = 0; av1name < STD_VIDEO_AV1_NUM_REF_FRAMES; av1name += 1) {
+        for (size_t av1name = STD_VIDEO_AV1_REFERENCE_NAME_LAST_FRAME; av1name < STD_VIDEO_AV1_NUM_REF_FRAMES; av1name += 1) {
             av1->dpbSlotInfos[i].RefFrameSignBias |= (m_pBuffers[i].RefFrameSignBias[av1name] <= 0) << av1name;
-            av1->dpbSlotInfos[i].SavedOrderHints[av1name] = m_pBuffers[i].ref_order_hint[av1name];
+            av1->dpbSlotInfos[i].SavedOrderHints[av1name] = m_pBuffers[i].SavedOrderHints[av1name];
         }
     }
 
@@ -380,15 +377,9 @@ void VulkanAV1Decoder::UpdateFramePointers(VkPicIf* currentPicture)
 
             m_pBuffers[ref_index].frame_type = pStd->frame_type;
             m_pBuffers[ref_index].order_hint = pStd->OrderHint;
-            for (uint8_t refName = 0; refName < STD_VIDEO_AV1_REFS_PER_FRAME; refName ++) {
-                uint8_t ref_order_hint = 0;
-                if ((ref_frame_idx[refName] < 8) && (ref_frame_idx[refName] >= 0)) {
-                    ref_order_hint = pStd->OrderHints[refName];
-                } else {
-                    ref_order_hint = pStd->OrderHint;
-                }
-
-                m_pBuffers[ref_index].ref_order_hint[refName] = ref_order_hint;
+            for (uint8_t refName = STD_VIDEO_AV1_REFERENCE_NAME_LAST_FRAME; refName < STD_VIDEO_AV1_NUM_REF_FRAMES; refName ++) {
+                uint8_t ref_order_hint = pStd->OrderHints[refName];
+                m_pBuffers[ref_index].SavedOrderHints[refName] = ref_order_hint;
                 m_pBuffers[ref_index].RefFrameSignBias[refName] = GetRelativeDist(pStd->OrderHint, ref_order_hint);
             }
 
@@ -2100,10 +2091,15 @@ bool VulkanAV1Decoder::ParseObuFrameHeader()
             pic_flags->use_ref_frame_mvs = 0;
         }
 
-        for (int i = 0; i < STD_VIDEO_AV1_REFS_PER_FRAME; i++)
-        {
-            pStd->OrderHints[i] = RefOrderHint[ref_frame_idx[i]];
-        }
+        // According to AV1 specification: "5.9.2. Uncompressed header syntax"
+        for (int i = 0; i < STD_VIDEO_AV1_REFS_PER_FRAME; i++) {
+            // Range check ref_frame_idx, RefOrderHint[] needs to be of size: BUFFER_POOL_MAX_SIZE.
+            if ((ref_frame_idx[i] >= BUFFER_POOL_MAX_SIZE) && (ref_frame_idx[i] < 0)) {
+                assert(false);
+            }
+
+            pStd->OrderHints[i + STD_VIDEO_AV1_REFERENCE_NAME_LAST_FRAME] = RefOrderHint[ref_frame_idx[i]];
+         }
 
         /*      for (int i = 0; i < REFS_PER_FRAME; ++i)
                 {

@@ -163,7 +163,7 @@ public:
             }
         }
             break;
-        case VK_STRUCTURE_TYPE_VIDEO_DECODE_AV1_CAPABILITIES_KHR:
+        case VK_VIDEO_CODEC_OPERATION_DECODE_AV1_BIT_KHR:
         {
             assert(pVideoDecodeCapabilities->pNext);
             const VkVideoDecodeAV1CapabilitiesKHR* pAV1Capabilities = (VkVideoDecodeAV1CapabilitiesKHR*)pVideoDecodeCapabilities->pNext;

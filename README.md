@@ -1,9 +1,3 @@
-# Known issues AV1 BETA support
-Following CTS content files have issues with the sample app code:
-- av1-352x288-main-filmgrain-8.ivf 
-
-Debug spew is turned on
-
 # VK_VULKAN_VIDEO
 
 This project conatins two Vulkan Video sample applications which demonstrate video decoding and encoding, respectively. These samples can be independently compiled. Instructions on how to build either the encoder or decoder sample are present within each respective folder.
